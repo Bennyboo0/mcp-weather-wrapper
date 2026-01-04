@@ -4,33 +4,13 @@ from typing import Any, Dict, Optional
 import httpx
 from fastmcp import FastMCP
 
-# Your Assignment 2 API base URL (Render app)
-API_BASE = os.environ.get(
-    "API_BASE",
-    "https://java-api-consumer.onrender.com"
-).rstrip("/")
+API_BASE = os.environ.get("API_BASE", "https://java-api-consumer.onrender.com").rstrip("/")
 
-# MCP server settings
 HOST = "0.0.0.0"
 PORT = int(os.environ.get("PORT", "8000"))
 MCP_PATH = os.environ.get("MCP_PATH", "/mcp")
 
 mcp = FastMCP("weather-advisor-mcp")
-
-from starlette.responses import JSONResponse
-from starlette.requests import Request
-
-@mcp.route("/")
-async def root(_: Request):
-    return JSONResponse({
-        "status": "ok",
-        "message": "MCP Weather Wrapper is running",
-        "mcp_endpoint": MCP_PATH
-    })
-
-@mcp.route("/ping")
-async def ping(_: Request):
-    return JSONResponse({"ok": True})
 
 
 async def _get_json(path: str, params: Optional[dict] = None) -> Dict[str, Any]:
@@ -49,15 +29,8 @@ async def get_weather(city: str, units: str = "imperial") -> Dict[str, Any]:
     """
     Calls your Assignment 2 endpoint:
       GET /api/weather?city=...&units=...
-
-    Args:
-      city: City name (e.g., "Boston", "Jerusalem")
-      units: "imperial" or "metric"
     """
-    return await _get_json(
-        "/api/weather",
-        params={"city": city, "units": units},
-    )
+    return await _get_json("/api/weather", params={"city": city, "units": units})
 
 
 @mcp.tool
@@ -69,10 +42,13 @@ async def health() -> Dict[str, Any]:
     return await _get_json("/health")
 
 
+@mcp.tool
+async def ping() -> Dict[str, Any]:
+    """
+    Simple connectivity test tool for the MCP server.
+    """
+    return {"ok": True}
+
+
 if __name__ == "__main__":
-    mcp.run(
-        transport="http",
-        host=HOST,
-        port=PORT,
-        path=MCP_PATH,
-    )
+    mcp.run(transport="http", host=HOST, port=PORT, path=MCP_PATH)
