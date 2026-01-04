@@ -17,6 +17,21 @@ MCP_PATH = os.environ.get("MCP_PATH", "/mcp")
 
 mcp = FastMCP("weather-advisor-mcp")
 
+from starlette.responses import JSONResponse
+from starlette.requests import Request
+
+@mcp.route("/")
+async def root(_: Request):
+    return JSONResponse({
+        "status": "ok",
+        "message": "MCP Weather Wrapper is running",
+        "mcp_endpoint": MCP_PATH
+    })
+
+@mcp.route("/ping")
+async def ping(_: Request):
+    return JSONResponse({"ok": True})
+
 
 async def _get_json(path: str, params: Optional[dict] = None) -> Dict[str, Any]:
     url = f"{API_BASE}{path}"
